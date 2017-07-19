@@ -1,0 +1,40 @@
+log4j.rootLogger=WARN,console,info,warn,error 
+
+
+#\u63a7\u5236\u53f0
+#FATAL>ERROR>WARN>INFO>DEBUG
+log4j.appender.console=org.apache.log4j.ConsoleAppender
+log4j.appender.console.Threshold=DEBUG
+log4j.appender.console.ImmdiateFlush=true
+log4j.appender.console.Target=System.err
+log4j.appender.console.layout=org.apache.log4j.PatternLayout
+log4j.appender.console.layout.ConversionPattern=[%-5p][%l(%r)]: %m %x %n
+
+
+
+log4j.logger.info=info 
+log4j.appender.info=com.server.jt.util.MyAppender 
+log4j.appender.info.layout=org.apache.log4j.PatternLayout 
+log4j.appender.info.layout.ConversionPattern=%-d{yyyy-MM-dd HH\:mm\:ss} [%l] - [ %t\:%r ] - [ %p ]  %m%n 
+log4j.appender.info.datePattern=yyyy-MM-dd'.txt' 
+log4j.appender.info.Threshold = INFO  
+log4j.appender.info.append=false 
+log4j.appender.info.File=C\:/logs0/info/log_ 
+  
+log4j.logger.warn=warn 
+log4j.appender.warn=com.server.jt.util.MyAppender 
+log4j.appender.warn.layout=org.apache.log4j.PatternLayout 
+log4j.appender.warn.layout.ConversionPattern=%-d{yyyy-MM-dd HH\:mm\:ss} [%l] - [ %t\:%r ] - [ %p ]  %m%n 
+log4j.appender.warn.datePattern=yyyy-MM-dd'.txt' 
+log4j.appender.warn.Threshold = WARN  
+log4j.appender.warn.append=false 
+log4j.appender.warn.File=C\:/logs0/warn/log_ 
+
+log4j.logger.error=error 
+log4j.appender.error=com.server.jt.util.MyAppender 
+log4j.appender.error.layout=org.apache.log4j.PatternLayout 
+log4j.appender.error.layout.ConversionPattern=%-d{yyyy-MM-dd HH:mm:ss} [%l] - [ %t:%r ] - [ %p ]  %m%n
+log4j.appender.error.datePattern=yyyy-MM-dd'.txt' 
+log4j.appender.error.Threshold = ERROR  
+log4j.appender.error.append=false 
+log4j.appender.error.File=C\:/logs0/error/log_ 

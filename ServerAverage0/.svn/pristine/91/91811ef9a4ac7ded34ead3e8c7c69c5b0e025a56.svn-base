@@ -1,0 +1,67 @@
+<?xml version='1.0' encoding='gb2312'?>
+<Svr>
+	
+		<Actual>
+			<Ip>112.124.59.86</Ip>
+			<Port>9401</Port>
+			<AcName>服务器1</AcName>
+			<RespAvg>0</RespAvg>
+			<GraphServer>112.124.59.66</GraphServer>
+			<GraphPort>8006</GraphPort>
+			<PriceServer>112.124.59.89</PriceServer>
+			<PricePort>7006</PricePort>
+		</Actual>
+		<Actual>
+			<Ip>115.28.3.31</Ip>
+			<Port>9401</Port>
+			<AcName>服务器2</AcName>
+			<RespAvg>0</RespAvg>
+			<GraphServer>115.28.160.179</GraphServer>
+			<GraphPort>7006</GraphPort>
+			<PriceServer>115.28.3.11</PriceServer>
+			<PricePort>8006</PricePort>
+		</Actual>
+		<Actual>
+			<Ip>112.124.103.56</Ip>
+			<Port>9401</Port>
+			<AcName>服务器3</AcName>
+			<RespAvg>0</RespAvg>
+			<GraphServer>115.29.17.113</GraphServer>
+			<GraphPort>7006</GraphPort>
+			<PriceServer>112.124.65.93</PriceServer>
+			<PricePort>8006</PricePort>
+		</Actual>
+		<Actual>
+			<Ip>121.199.60.226</Ip>
+			<Port>9402</Port>
+			<AcName>模拟服务器1</AcName>
+			<RespAvg>0</RespAvg>
+			<GraphServer>121.199.61.241</GraphServer>
+			<GraphPort>7006</GraphPort>
+			<PriceServer>112.124.2.185</PriceServer>
+			<PricePort>8006</PricePort>
+		</Actual>
+		<Actual>
+			<Ip>112.124.103.56</Ip>
+			<Port>9402</Port>
+			<AcName>模拟服务器2</AcName>
+			<RespAvg>0</RespAvg>
+			<GraphServer>121.199.61.241</GraphServer>
+			<GraphPort>7006</GraphPort>
+			<PriceServer>112.124.2.185</PriceServer>
+			<PricePort>8006</PricePort>
+		</Actual>
+		<Actual>
+			<Ip>192.168.1.32</Ip>
+			<Port>9401</Port>
+			<AcName>开发服务器</AcName>
+			<RespAvg>0</RespAvg>
+			<GraphServer>192.168.1.32</GraphServer>
+			<GraphPort>8006</GraphPort>
+			<PriceServer>192.168.1.32</PriceServer>
+			<PricePort>7006</PricePort>
+		</Actual>
+<!--	</ActualList>
+	 <OpenTime>6</OpenTime> <SpecialList /> <CheckSpeed>2011/11/10 11:14:05</CheckSpeed> 
+		<ModeType>0</ModeType> <version>1.1.1.6</version> -->
+</Svr>

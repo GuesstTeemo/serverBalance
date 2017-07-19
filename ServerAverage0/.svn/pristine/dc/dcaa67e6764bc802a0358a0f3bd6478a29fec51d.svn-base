@@ -1,0 +1,362 @@
+package com.server.jt.service;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.nio.charset.Charset;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Observable;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import org.apache.log4j.Logger;
+import org.dom4j.Document;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
+
+import com.google.protobuf.ByteString;
+import com.server.jt.util.ByteUtil;
+import com.server.jt.util.CommPara;
+
+import ench.ARPInterface;
+
+/**
+ * 实盘
+ * 
+ * @author Teemo
+ * @date： 日期：2016年12月8日 时间：下午1:47:21
+ */
+public class MonitorSocketThread extends Observable implements Runnable {
+
+	public Socket Socket = null;
+	private OutputStream out;
+	private InputStream in;
+	private Timer heartBeatTimer;
+	private TimerTask heartBeatTask;
+	public static String startTime;
+	private int a = 1;
+
+	Date d1;
+	Date d2;
+	long diff;
+	long days;
+	long hours;
+	long minutes;
+
+	private static Logger log = Logger.getLogger(MonitorSocketThread.class);
+
+	// 构造方法
+	public MonitorSocketThread() {
+
+		createSocket();
+	}
+
+	// socket建立连接
+	public void createSocket() {
+
+		try {
+			this.Socket = new Socket(CommPara.monitorIP, CommPara.monitorPort);
+			in = Socket.getInputStream();
+			out = Socket.getOutputStream();
+			log.error("【monitorsocet】创建成功");
+			SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 设置日期格式
+			startTime = df.format(new Date());// new Date()为获取当前系统时间
+		} catch (UnknownHostException e) {
+			log.error("【monitorsocet】UnknownHostException创建出错", e);
+
+		} catch (IOException e) {
+			log.error("【monitorsocet】IOException创建出错", e);
+			System.out.println("++:" + e);
+
+		} catch (Exception e) {
+			log.error("【monitorsocet】Exception创建出错", e);
+		}
+	}
+
+	public void run() {
+
+		startHeartBeatThread();// 启动监控定时器
+	}
+
+	public void writeToSocket(byte[] b) throws IOException {
+		out.write(b);
+		out.flush();
+
+	}
+
+	// 心跳包启动程序
+	public void startHeartBeatThread() {
+		// 启动心跳线程
+		heartBeatTimer = new Timer();
+		heartBeatTask = new TimerTask() {
+
+			public void run() {
+
+				Document doc = DocumentHelper.createDocument();
+
+				// 增加根节点
+				Element Monitor = doc.addElement("Monitor");
+
+				// 增加子元素
+				Element MsgHead = Monitor.addElement("MsgHead");
+				Element MsgBody = Monitor.addElement("MsgBody");
+				// Element ServerNo = Monitor.addElement("ServerNo");
+
+				Element RequestID = MsgHead.addElement("RequestID");
+				RequestID.setText("0");
+
+				Element EndFlag = MsgHead.addElement("EndFlag");
+				EndFlag.setText("0");
+
+				Element MonitorItems = MsgBody.addElement("MonitorItems");
+				Element MonitorItem = MonitorItems.addElement("MonitorItem");
+
+				MonitorItem.addAttribute("sysname", "君泰商品生产系统");
+				MonitorItem.addAttribute("subname", "前置服务器1(112.124.59.86)");
+				// MonitorItem.addAttribute("sysname", "君泰商品测试系统");
+				// MonitorItem.addAttribute("subname", "测试服务器");
+				MonitorItem.addAttribute("type", "报告");
+				MonitorItem.addAttribute("name", "java");
+				MonitorItem.addAttribute("desc", "负载均衡");
+				
+				if(Server.list.size() == 0){
+					MonitorItem.addAttribute("status", "正常");
+				}
+				
+				for (int i = 0; i < Server.list.size(); i++) {
+					if (Server.list.size() == 0 || Server.list == null) {
+						MonitorItem.addAttribute("status", "正常");
+					} else {
+						if (null == Server.list.get(i)
+								|| null == Server.list.get(i).Socket
+								|| false == Server.list.get(i).Socket
+										.isConnected()) {
+							MonitorItem.addAttribute("status", "异常");
+							log.error("负载均衡异常");
+						} else {
+							MonitorItem.addAttribute("status", "正常");
+						}
+					}
+					StringBuffer content = new StringBuffer();
+					content.append("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">");
+					content.append("<html xmlns=\"http://www.w3.org/1999/xhtml\">");
+					content.append("<head>");
+					content.append("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=gb2312\" />");
+					content.append("<script src=\"http://code.jquery.com/jquery-latest.js\"></script>");
+					content.append("<title>负载均衡运行报告</title>");
+					content.append("<style type=\"text/css\">");
+					content.append("body { width: 70%;margin: 40px auto;font-family: 'trebuchet MS', 'Lucida sans', Arial;font-size: 14px;color: #444; }");
+					content.append("table {border: solid 1px #ccc;background-color:#d4e3e5;margin: 0 auto;border-collapse: collapse;width: 100%;margin: 40px auto;font-family: 'trebuchet MS', 'Lucida sans', Arial;font-size: 14px;color: #444; cursor: default;text-align: center;}");
+					// content.append(".bordered { border: solid #ccc 1px; -moz-border-radius: 6px; -webkit-border-radius: 6px; border-radius: 6px; -webkit-box-shadow: 0 1px 1px #ccc; -moz-box-shadow: 0 1px 1px #ccc; box-shadow: 0 1px 1px #ccc;}");
+					// content.append(".bordered tr:hover { background: #ffff66; -o-transition: all 0.1s ease-in-out; -webkit-transition: all 0.1s ease-in-out; -moz-transition: all 0.1s ease-in-out; -ms-transition: all 0.1s ease-in-out; transition: all 0.1s ease-in-out;} ");
+					// content.append(".bordered td{ border-right: 1px solid #ccc; border-top: 1px solid #ccc; padding: 10px; text-align: left; }");
+					// content.append(".bordered td:first-child, .bordered th:first-child { border-left: none; }");
+					// content.append(".bordered tr:last-child td:first-child { -moz-border-radius: 0 0 0 6px; -webkit-border-radius: 0 0 0 6px; border-radius: 0 0 0 6px; }");
+					// content.append(".bordered tr:last-child td:last-child { -moz-border-radius: 0 0 6px 0; -webkit-border-radius: 0 0 6px 0; border-radius: 0 0 1px 0; }");
+					content.append("tr {border: solid 1px #666;height: 35px;}");
+					content.append("table thead tr {background-color: #ccc;}");
+					content.append("td { border: solid 1px #666;}");
+					content.append("th {border: solid 1px #666;text-align: center;cursor: pointer;}");
+					content.append(".sequence {text-align: center;}");
+					content.append(".hover {background-color: #ffff66;}");
+					content.append("h1{text-align:center;width:100%;}");
+					content.append("h2{text-align:center;width:100%;}");
+					content.append("</style>");
+					content.append("</head>");
+
+					content.append("<body>");
+					content.append("<h1>负载均衡实盘系统运行报告</h1>");
+
+					SimpleDateFormat df = new SimpleDateFormat(
+							"yyyy-MM-dd HH:mm:ss");// 设置日期格式
+					String newTime = df.format(new Date());// new
+															// Date()为获取当前系统时间
+					try {
+						d1 = df.parse(newTime);
+						d2 = df.parse(Server.startTime);
+
+						diff = d1.getTime() - d2.getTime();// 这样得到的差值是微秒级别
+						days = diff / (1000 * 60 * 60 * 24);
+						hours = (diff - days * (1000 * 60 * 60 * 24))
+								/ (1000 * 60 * 60);
+						minutes = (diff - days * (1000 * 60 * 60 * 24) - hours
+								* (1000 * 60 * 60))
+								/ (1000 * 60);
+						// System.out.println("" + days + "天" + hours + "小时"
+						// + minutes + "分");
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+					content.append("</br></br>");
+					if (Server.list.size() == 0 || Server.list == null) {
+						content.append("</br></br>");
+						content.append("</br></br>");
+						content.append("<p style=\"font-size:30px;\">负载均衡服务正常</p>");
+						content.append("<p style=\"font-size:30px;\">负载均衡服务启动时间:"
+								+ Server.startTime + "</p>");
+						content.append("<p style=\"font-size:30px;\">报告发送时间:"
+								+ newTime + "</p>");
+						content.append("<p style=\"font-size:30px;\">系统已运行时间:"
+								+ days + "天" + hours + "小时" + minutes + "分"
+								+ "</p>");
+					} else {
+						if (null == Server.list.get(i)
+								|| null == Server.list.get(i).Socket
+								|| false == Server.list.get(i).Socket
+										.isConnected()) {
+							content.append("<p style=\"color:red\">负载均衡服务异常</p>");
+							content.append("<p>推送服务启动时间:" + Server.startTime
+									+ "</p>");
+							content.append("<p>报告发送时间:" + newTime + "</p>");
+						} else {
+							content.append("<p>负载均衡服务正常</p>");
+							content.append("<p>负载均衡服务启动时间:" + Server.startTime
+									+ "</p>");
+							content.append("<p>报告发送时间:" + newTime + "</p>");
+							content.append("<p>系统已运行时间:" + days + "天" + hours
+									+ "小时" + minutes + "分" + "</p>");
+							content.append("<caption align=\"top\"><h2>已连接服务器详情</h2></caption>");
+							content.append("<table class=\"bordered\" id=\"tb\">");
+							content.append("<thead><tr><th width=\"27%\" type=\"string\">服务器名</th><th width=\"45%\" type=\"string\">IP与端口号</th><th width=\"28%\" type=\"string\">服务器负载量</th></tr></thead>");
+							content.append("<tbody>");
+							Iterator itgroup = ServerSocketThread.mapfuzai
+									.entrySet().iterator();
+							while (itgroup.hasNext()) {
+								Map.Entry entry = (Map.Entry) itgroup.next();
+								String[] login = ((String) entry.getKey())
+										.split(",");
+
+								// 模拟盘交易前置
+								if (("5").equals(login[3])) {
+									content.append("<tr>");
+									content.append("<td>交易前置服务器</td>");
+									content.append("<td>" + login[0] + ":"
+											+ login[2] + "</td>");
+									content.append("<td>"
+											+ (Integer) entry.getValue()
+											+ "</td>");
+									content.append("</tr>");
+								}
+								// 模拟盘行情报价
+								else if ("3".equals(login[3])) {
+									content.append("<tr>");
+									content.append("<td>行情报价服务器</td>");
+									content.append("<td>" + login[0] + ":"
+											+ login[2] + "</td>");
+									content.append("<td>"
+											+ (Integer) entry.getValue()
+											+ "</td>");
+									content.append("</tr>");
+								}
+								// 模拟盘图形服务
+								else if ("10".equals(login[3])) {
+									content.append("<tr>");
+									content.append("<td>图形服务服务器</td>");
+									content.append("<td>" + login[0] + ":"
+											+ login[2] + "</td>");
+									content.append("<td>"
+											+ (Integer) entry.getValue()
+											+ "</td>");
+									content.append("</tr>");
+								}
+
+							}
+							content.append("</tbody>");
+							content.append("</table>");
+							
+							content.append("<script type=\"text/javascript\">");
+							content.append("$(function () {var tableObject = $('#tb');var tbHead = tableObject.children('thead');var tbHeadTh = tbHead.find('tr th');");
+							content.append("var tbBody = tableObject.children('tbody');var tbBodyTr = tbBody.find('tr');var sortIndex = -1;");
+							content.append("tbHeadTh.each(function () {var thisIndex = tbHeadTh.index($(this));  ");
+							content.append("$(this).mouseover(function () {tbBodyTr.each(function () { var tds = $(this).find(\"td\");$(tds[thisIndex]).addClass(\"hover\");});");
+							content.append("}).mouseout(function () {tbBodyTr.each(function () { var tds = $(this).find(\"td\");$(tds[thisIndex]).removeClass(\"hover\"); }); }); ");
+							content.append("$(this).click(function () {var dataType = $(this).attr(\"type\");checkColumnValue(thisIndex, dataType);}); });");
+							content.append("$(\"tbody tr\").removeClass(); $(\"tbody tr\").mouseover(function () {$(this).addClass(\"hover\");}).mouseout(function () {$(this).removeClass(\"hover\");});");
+							content.append("function checkColumnValue(index, type) {var trsValue = new Array();");
+							content.append("tbBodyTr.each(function () {var tds = $(this).find('td');trsValue.push(type + \".separator\" + $(tds[index]).html() + \".separator\" + $(this).html()); $(this).html(\"\");});");
+							content.append(" var len = trsValue.length;if (index == sortIndex) {trsValue.reverse(); } else {  ");
+							content.append("for (var i = 0; i < len; i++) {type = trsValue[i].split(\".separator\")[0];");
+							content.append("for (var j = i + 1; j < len; j++) {value1 = trsValue[i].split(\".separator\")[1];value2 = trsValue[j].split(\".separator\")[1];");
+							content.append("if (type == \"number\") {value1 = value1 == \"\" ? 0 : value1;value2 = value2 == \"\" ? 0 : value2;");
+							content.append(" if (parseFloat(value1) > parseFloat(value2)) {var temp = trsValue[j];trsValue[j] = trsValue[i];trsValue[i] = temp;} ");
+							content.append("} else {if (value1.localeCompare(value2) > 0) {var temp = trsValue[j];trsValue[j] = trsValue[i];trsValue[i] = temp;}}}}}");
+							content.append("for (var i = 0; i < len; i++) {$(\"tbody tr:eq(\" + i + \")\").html(trsValue[i].split(\".separator\")[2]);}sortIndex = index; }})");
+//							content.append("");
+							content.append("</script>");
+						}
+
+					}
+					content.append("</body>");
+					content.append("</html>");
+
+					MonitorItem.setText(content.toString());
+
+				}
+				String xmltostring = doc.asXML();
+				try {
+					ARPInterface.ARPMessage.Builder arpmessageBuilder2 = ARPInterface.ARPMessage
+							.newBuilder();
+					ARPInterface.ARPMessage.ServiceRouteNty.Builder sntyBuilder = ARPInterface.ARPMessage.ServiceRouteNty
+							.newBuilder();
+
+					// 服务路由通知
+					sntyBuilder.setServiceNo(8);// 服务器编号
+					sntyBuilder.setSeqNo(0);// 序号
+					sntyBuilder.setServiceData(ByteString.copyFrom(xmltostring
+							.getBytes(Charset.forName("GBK"))));// 服务数据
+
+					arpmessageBuilder2.setServiceRouteNty(sntyBuilder);
+					ARPInterface.ARPMessage arpmessage2 = arpmessageBuilder2
+							.build();
+
+					byte[] b2 = arpmessage2.toByteArray();
+					byte[] header2 = ByteUtil.intTobyte(b2.length);
+					byte[] buf2 = ByteUtil.getMergeBytes(header2, b2);
+					writeToSocket(buf2);
+					log.info("【monitorsocket】监控报告已发送");
+
+				} catch (IOException e) {
+
+					log.error("【monitorsocket】监控write出现错误", e);
+					closeSocketServer();// 关闭socket
+					if (heartBeatTimer != null) {
+						heartBeatTimer.cancel();// 关闭之前的定时器
+					}
+					doBusiness();
+				}
+
+			}
+		};
+		heartBeatTimer.schedule(heartBeatTask, 1000, 1000); // 启动5s后开始执行，间隔30s
+	}
+
+	public void doBusiness() {
+		log.error("【monitorsocket】启用观察者");
+		super.setChanged();
+		notifyObservers("monitorsocket");
+
+	}
+
+	// 关闭socket
+	public void closeSocketServer() {
+		try {
+			if (null != Socket && !Socket.isClosed()) {
+				Socket.close();
+				log.error("【monitorsocket】已经关闭");
+			}
+		} catch (IOException e) {
+
+			log.error("【monitorsocket】关闭出现错误", e);
+		}
+	}
+
+}

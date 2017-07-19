@@ -1,0 +1,129 @@
+option java_package = "ench" ;
+option java_outer_classname = "JTM" ;
+//syntax = "proto2";
+
+//package JT;
+
+// 报文头
+message MsgHead
+{
+	required uint32 RequestID=1; // 请求编号
+	required uint32 EndFlag=2; // 结束标志
+}
+
+// 同步指令
+message Sync
+{
+	required string TradingDay=1; // 交易日
+	required uint32 SeqNo=2; // 序号
+}
+
+// 同步数据
+message SyncData
+{
+	required string TradingDay=1; // 交易日
+	required uint32 SeqNo=2; // 序号
+	required bytes ServiceData=3; // 数据
+}
+
+// 实时行情
+message RealData
+{
+	required string TradeDate=1; // 交易日
+	required string InstrumentID=2; // 商品代码
+	required double OpenPrice=3; // 开盘价
+	required double HighPrice=4; // 最高价
+	required double LowPrice=5; // 最低价
+	required double ClosePrice=6; // 收盘价
+	required double AvgPrice=7; // 当日均价
+	required uint32 Volume=8; // 现手
+	required double Amount=9; // 成交金额
+	required uint64 TotalVolume=10; // 总成交量
+	required double TotalAmount=11; // 总成交金额
+	required string MatchDate=12; // 成交日期
+	required string MatchTime=13; // 成交时间
+	required uint32 BidVolume1=14; // 买1量
+	required double BidPrice1=15; // 买1价
+	required uint32 AskVolume1=16; // 卖1量
+	required double AskPrice1=17; // 卖1价
+	required uint32 BidVolume2=18; // 买2量
+	required double BidPrice2=19; // 买2价
+	required uint32 AskVolume2=20; // 卖2量
+	required double AskPrice2=21; // 卖2价
+	required uint32 BidVolume3=22; // 买3量
+	required double BidPrice3=23; // 买3价
+	required uint32 AskVolume3=24; // 卖3量
+	required double AskPrice3=25; // 卖3价
+	required double PreClosePrice=26; // 上日收盘价
+	required double SettlementPrice=27; // 结算价
+	required double PreSettlementPrice=28; // 上日结算价
+	required double ReutersPrice=29; // 路透报价
+	required uint64 ReutersTime=30; // 路透时间
+	required double InterBrokersPrice=31; // 盈透报价
+	required uint64 InterBrokersTime=32; // 盈透时间
+	required double MT4Price=33; // MT4报价
+	required uint64 MT4Time=34; // MT4时间
+}
+
+// 成交单
+message Trade
+{
+	required string TradeDate=1; // 交易日
+	required string MatchID=2; // 成交号
+	required string OrderID=3; // 订单号
+	required string InstrumentID=4; // 合约号
+	required string InvestorID=5; // 投资者号
+	required string BSFlag=6; // 买卖标志
+	required string OCFlag=7; // 开平标志
+	required double Price=8; // 价格
+	required uint32 Qty=9; // 数量
+	required string MatchDate=10; // 成交日期
+	required string MatchTime=11; // 成交时间
+	required double Margin=12; // 占用保证金
+	required double Fee=13; // 手续费
+	required double ProfitLoss=14; // 盈亏
+}
+
+// 登录日志
+message LoginLogNty
+{
+	required string TradeDate=1; // 交易日
+	required string LoginTime=2; // 登录时间
+	required string UserID=3; // 客户ID
+	required string RspCode=4; // 响应码
+	required string RspDesc=5; // 响应描述
+	required string IP=6; // IP地址
+}
+
+// 踢用户
+message KickOffNty
+{
+	required string UserID=1; // 客户ID
+}
+
+// 负载通知
+message LoadNty
+{
+	required uint32 Load=1; // 负载值
+	required string servaddr=2; // 地址
+	required uint32 envflag=3; // 环境标识
+}
+
+// 报文体
+message MsgBody
+{
+	optional Sync sync=1; // 同步指令
+	optional SyncData syncData=2; // 同步数据
+	optional RealData realData=3; // 实时行情
+	optional Trade trade=4; // 成交单
+	optional LoginLogNty loginLogNty=5; // 登录日志
+	optional KickOffNty kickOffNty=6; // 踢用户
+	optional LoadNty loadNty=7; // 负载通知
+}
+
+// 报文
+message JTMessage
+{
+	required MsgHead msgHead=1; // 报文头
+	required MsgBody msgBody=2; // 报文体
+}

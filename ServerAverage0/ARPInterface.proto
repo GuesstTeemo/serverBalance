@@ -1,0 +1,48 @@
+option java_package = "ench";
+option java_outer_classname = "ARPInterface";
+//syntax = "proto2";
+
+//package ARP;
+
+message ARPMessage
+{
+
+// 服务标志
+enum ServiceFlags
+{
+	Multicast = 0x00000001; // 多播
+	Broadcast = 0x00000002; // 广播
+}
+
+// 服务
+message Service
+{
+	required uint32 ServiceNo=1; // 服务编号
+}
+
+// 登录请求
+message LoginReq
+{
+	required uint32 ServerNo=1; // 服务器编号
+	repeated Service Services=2; // 服务列表
+}
+
+// 登录应答
+message LoginRsp
+{
+	required uint32 ServerNo=1; // 服务器编号
+	repeated Service Services=2; // 服务列表
+}
+
+// 服务路由通知
+message ServiceRouteNty
+{
+	required uint32 ServiceNo=1; // 服务编号
+	required uint32 SeqNo=2; // 序号
+	required bytes ServiceData=3; // 服务数据
+}
+
+optional LoginReq loginReq=1; // 登录请求
+optional LoginRsp loginRsp=2; // 登录应答
+optional ServiceRouteNty serviceRouteNty=3; // 服务路由通知
+}
